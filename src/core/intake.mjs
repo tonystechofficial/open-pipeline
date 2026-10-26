@@ -39,7 +39,7 @@ function fieldsFrom(entries, config) {
   return fields;
 }
 
-function contactOf({ name, phone, email, company = null, trade = null, town = null }) {
+export function contactOf({ name, phone, email, company = null, trade = null, town = null }) {
   return { name: clean(name, 100), phone: normalizePhone(phone), email: normalizeEmail(email), company: clean(company, 120), trade: clean(trade, 80), town: clean(town, 80) };
 }
 

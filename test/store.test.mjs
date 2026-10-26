@@ -119,3 +119,12 @@ test('an older event written later never makes a contact look older to the reten
   await store.applyIntake({ ...call(), sourceRef: 'archive', at: '2023-01-01T00:00:00Z' }, { now: NOW });
   assert.equal((await store.deal(dealId)).contact.last_activity_at, '2026-10-26T09:00:00.000Z');
 });
+
+test('closing a deal completes its open tasks; a task added afterwards, such as a date to get back in touch, stays', async () => {
+  const store = d1Store(d1Binding(), config);
+  const { dealId } = await store.applyIntake(booking(), { now: NOW });
+  await store.updateDeal(dealId, { stage: 'perdu', lostReason: 'Plus tard, au printemps' }, { now: NOW });
+  assert.ok((await store.deal(dealId)).tasks.every((t) => t.done_at));
+  await store.addTask(dealId, { title: 'Recontacter Jean Martin', dueAt: '2027-03-01T08:00:00Z' }, { now: NOW });
+  assert.deepEqual((await store.openTasks()).map((t) => t.title), ['Recontacter Jean Martin']);
+});

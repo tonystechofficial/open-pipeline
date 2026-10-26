@@ -114,6 +114,10 @@ export function d1Store(db, config) {
       const closedAt = isClosed(config, nextStage) ? (deal.closed_at ?? ts) : null;
       const ops = [bound('UPDATE deals SET stage = ?, title = ?, fields = ?, lost_reason = ?, closed_at = ?, updated_at = ? WHERE id = ?',
         nextStage, title ?? deal.title, JSON.stringify(merged), lostReason ?? (nextStage === deal.stage ? deal.lost_reason : null), closedAt, ts, id)];
+      if (closedAt && !deal.closed_at) {
+        // A closed deal's open tasks no longer mean anything ("send the quote" on a lost deal).
+        ops.push(bound('UPDATE tasks SET done_at = ? WHERE deal_id = ? AND done_at IS NULL', ts, id));
+      }
       if (nextStage !== deal.stage) {
         const reason = lostReason ? ` (${lostReason})` : '';
         ops.push(...activity(deal.contact_id, id, { kind: 'stage', body: `Étape : ${stageLabel(deal.stage)} → ${stageLabel(nextStage)}${reason}` }, ts));
@@ -152,11 +156,11 @@ export function d1Store(db, config) {
       return first('SELECT * FROM tasks WHERE id = ?', id);
     },
 
-    /** Open tasks of open deals, soonest first: the tasks page and the morning email. */
+    /** Open tasks, soonest first: the tasks page and the morning email. A deal closing completes its own. */
     async openTasks() {
       return all(`SELECT t.id, t.title, t.due_at AS dueAt, d.id AS dealId, d.title AS dealTitle, c.name AS contactName
         FROM tasks t JOIN deals d ON d.id = t.deal_id JOIN contacts c ON c.id = d.contact_id
-        WHERE t.done_at IS NULL AND d.closed_at IS NULL ORDER BY t.due_at`);
+        WHERE t.done_at IS NULL ORDER BY t.due_at`);
     },
 
     /** Open deals without any open task: the ones that get forgotten. */
