@@ -12,7 +12,7 @@ const NOW = new Date('2026-10-26T09:00:00Z');
 const assets = { html: '<!doctype html><title>Pipeline</title>', css: 'body{}', js: 'console.log(1)' };
 
 function app({ access = true } = {}) {
-  const deps = { store: d1Store(d1Binding(), config), config, now: () => NOW, assets, access: access ? { aud: 'x' } : undefined, user: 'tony@example.com', log: () => {} };
+  const deps = { store: d1Store(d1Binding(), config), config, now: () => NOW, assets, access: access ? { aud: 'x' } : undefined, log: () => {} };
   const call = async (method, path, body) => {
     const res = await handleApp(new Request(`https://pipeline.example${path}`, { method, ...(body ? { body: JSON.stringify(body), headers: { 'content-type': 'application/json' } } : {}) }), deps);
     const type = res.headers.get('content-type') ?? '';

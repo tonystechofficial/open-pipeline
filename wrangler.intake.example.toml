@@ -1,0 +1,22 @@
+# The template of wrangler.intake.toml, the public intake Worker (Cal.com, the receptionist, the website
+# form). `npm run db:id` copies it to wrangler.intake.toml, which git ignores. A wrangler command for
+# this Worker takes `-c wrangler.intake.toml`.
+name = "open-pipeline-intake"
+main = "worker/intake.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true      # https://open-pipeline-intake.<your-subdomain>.workers.dev, public
+preview_urls = false
+
+# The app's database: npm run db:id writes its id in both files.
+[[d1_databases]]
+binding = "DB"
+database_name = "open-pipeline"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Secrets, never written here; an endpoint whose secret is missing refuses everything:
+#   CALCOM_WEBHOOK_SECRET  set by npm run cal:webhook
+#   RECEPTIONIST_SECRET    set by npm run link:receptionist
+#   TURNSTILE_SECRET       npx wrangler secret put TURNSTILE_SECRET -c wrangler.intake.toml
+[vars]
+FORM_ORIGINS = "https://www.example.com"   # the websites allowed to send the contact form, comma-separated

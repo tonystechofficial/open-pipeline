@@ -10,6 +10,16 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "db:id": "node scripts/set-database-id.mjs",
+    "db:init": "npx wrangler d1 migrations apply open-pipeline --remote",
+    "db:init:local": "npx wrangler d1 migrations apply open-pipeline --local",
+    "dev": "npx wrangler dev --port 8787",
+    "dev:intake": "npx wrangler dev -c wrangler.intake.toml --port 8788",
+    "deploy": "node scripts/deploy.mjs",
+    "cal:webhook": "node scripts/cal-webhook.mjs",
+    "link:receptionist": "node scripts/link-receptionist.mjs",
+    "tail": "npx wrangler tail",
+    "tail:intake": "npx wrangler tail -c wrangler.intake.toml"
   }
 }

@@ -50,7 +50,7 @@ export async function handleApp(request, deps) {
 
     if (method === 'GET' && path === '/api/config') {
       return json({
-        name: config.name, timeZone: config.timeZone, fields: config.fields, sources: config.sources, user: deps.user ?? null,
+        name: config.name, timeZone: config.timeZone, fields: config.fields, sources: config.sources,
         stages: config.stages.map((s) => ({ ...s, temperature: temperatureOf(config, s.id) })),
       });
     }

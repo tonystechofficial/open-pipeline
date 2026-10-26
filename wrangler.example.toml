@@ -1,0 +1,40 @@
+# The template of wrangler.toml, the app Worker (pages and API, behind Cloudflare Access). `npm run db:id`
+# copies it to wrangler.toml, which git ignores: the copy holds this deployment's values.
+name = "open-pipeline"
+main = "worker/app.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true      # https://open-pipeline.<your-subdomain>.workers.dev, behind Access like every address of this Worker
+preview_urls = false    # no extra address per version
+
+# The pages, bundled as text and served by the Worker itself.
+[[rules]]
+type = "Text"
+globs = ["**/*.html", "**/*.css", "**/*.client.js"]
+fallthrough = false
+
+# Created once in the EU jurisdiction (set at creation only), shared with the intake Worker:
+#   npx wrangler d1 create open-pipeline --jurisdiction eu
+#   npm run db:id
+[[d1_databases]]
+binding = "DB"
+database_name = "open-pipeline"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# The secret RESEND_API_KEY is set with `npx wrangler secret put RESEND_API_KEY`, never written here.
+[vars]
+REMINDER_EMAIL = "you@example.com"   # who gets the morning email
+MAIL_FROM = "open-pipeline <onboarding@resend.dev>"  # Resend's test sender delivers only to the Resend account's own address
+APP_URL = ""                         # written by npm run deploy: the links in the morning email
+
+# The morning run: the email of the day's follow-ups, then the deletion of contacts untouched for
+# three years (retentionDays in config/pipeline.json). 06:00 UTC is 7 or 8 a.m. in Paris.
+[triggers]
+crons = ["0 6 * * *"]
+
+# `npm run dev` only: Cloudflare Access simulated with this identity.
+[access.dev]
+aud = "local-dev"
+
+  [access.dev.identity]
+  email = "you@example.com"
