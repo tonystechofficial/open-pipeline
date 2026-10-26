@@ -34,7 +34,7 @@ test('a booking writes the contact, a deal at RDV pris, the timeline and the nex
   assert.equal(deal.stage, 'rdv_pris');
   assert.deepEqual(deal.fields, { metier: 'Plombier' });
   assert.equal(contact.phone, '+33612345678');
-  assert.deepEqual(tasks.map((t) => [t.title, t.due_at]), [['RDV avec Jean Martin', '2026-10-28T08:00:00Z']]);
+  assert.deepEqual(tasks.map((t) => [t.title, t.due_at]), [['RDV avec Jean Martin', '2026-10-28T08:00:00.000Z']]);
   assert.equal(activities.length, 1);
   assert.deepEqual(await store.applyIntake(booking(), { now: NOW }), { duplicate: true });
   assert.equal((await store.deal(first.dealId)).activities.length, 1);
@@ -52,6 +52,15 @@ test('the same person calling later is found by phone: same deal, stage kept, de
   assert.equal(view.contact.town, 'Mérignac');
   assert.equal(view.activities.length, 2);
   assert.equal(view.tasks.length, 2);
+});
+
+test('an appointment the receptionist booked arrives from Cal.com and from the call: two timeline entries, one task', async () => {
+  const store = d1Store(d1Binding(), config);
+  const { dealId } = await store.applyIntake(booking(), { now: NOW }); // starts 2026-10-28T08:00:00Z
+  await store.applyIntake(call({ status: 'rdv', appointment: { at: '2026-10-28T08:00:00.000Z', label: 'mercredi 28 octobre à 9 h' } }), { now: NOW });
+  const view = await store.deal(dealId);
+  assert.equal(view.activities.length, 2);
+  assert.deepEqual(view.tasks.map((t) => [t.title, t.due_at]), [['RDV avec Jean Martin', '2026-10-28T08:00:00.000Z']]);
 });
 
 test('found by email when there is no phone', async () => {

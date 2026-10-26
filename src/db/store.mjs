@@ -7,6 +7,11 @@ const CONTACT_COLUMNS = ['name', 'phone', 'email', 'company', 'trade', 'town'];
 const CLOSED_SHOWN_DAYS = 30; // closed deals stay visible on the board this long
 const uuid = () => crypto.randomUUID();
 const withFields = (deal) => deal && { ...deal, fields: JSON.parse(deal.fields || '{}') };
+/** One spelling per instant ("…08:00:00Z" and "…08:00:00.000Z" are the same time), or null. */
+const instant = (value) => {
+  const d = new Date(value ?? NaN);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
 
 export function d1Store(db, config) {
   const bound = (sql, ...args) => db.prepare(sql).bind(...args);
@@ -68,8 +73,11 @@ export function d1Store(db, config) {
       }
 
       ops.push(...activity(contactId, dealId, { ...plan.activity, source: plan.source, sourceRef: plan.sourceRef }, at));
-      if (plan.task?.title && plan.task.dueAt) {
-        ops.push(bound('INSERT INTO tasks (id, deal_id, title, due_at, created_at) VALUES (?, ?, ?, ?, ?)', uuid(), dealId, plan.task.title, plan.task.dueAt, ts));
+      const dueAt = plan.task?.title ? instant(plan.task.dueAt) : null;
+      // The receptionist books in Cal.com, so the same appointment arrives from both: one task is enough.
+      const sameTime = dueAt && plan.deal.id && await first('SELECT id FROM tasks WHERE deal_id = ? AND done_at IS NULL AND due_at = ?', dealId, dueAt);
+      if (dueAt && !sameTime) {
+        ops.push(bound('INSERT INTO tasks (id, deal_id, title, due_at, created_at) VALUES (?, ?, ?, ?, ?)', uuid(), dealId, plan.task.title, dueAt, ts));
       }
       await db.batch(ops);
       return { contactId, dealId, createdContact: !plan.contact.id, createdDeal: !plan.deal.id };
