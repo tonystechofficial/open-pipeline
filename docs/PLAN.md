@@ -65,7 +65,8 @@ coming, deals without a next action); new deal; CSV import with a preview. Mobil
 ## Commands
 
 `npm run db:id`, `db:init`, `deploy` (both Workers, then `README.local.md`), `cal:webhook` (creates
-the Cal.com webhook and its secret), `intake:secret` (a shared secret for the receptionist).
+the Cal.com webhook and its secret), `link:receptionist` (a shared secret on both Workers and
+`CRM_WEBHOOK_URL` in open-receptionist). The README lists them all.
 
 ## Only the owner can do
 

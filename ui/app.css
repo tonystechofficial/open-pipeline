@@ -71,6 +71,7 @@ label { display: grid; gap: 4px; font-size: .9rem; font-weight: 600; color: var(
 .tasks { list-style: none; padding: 0; margin: 0 0 10px; }
 .tasks li { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
 .tasks .done { text-decoration: line-through; color: var(--muted); }
+.tasks .late { color: var(--bad); font-weight: 600; }
 .done-tasks summary { cursor: pointer; font-size: .9rem; margin: 4px 0 8px; }
 .timeline { list-style: none; padding: 0; margin: 12px 0 0; }
 .timeline li { padding: 10px 0; border-top: 1px solid var(--line); }

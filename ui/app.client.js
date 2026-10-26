@@ -142,7 +142,8 @@ async function deal(id) {
   const contactFields = [['name', 'Nom'], ['phone', 'Téléphone'], ['email', 'Email'], ['company', 'Entreprise'], ['trade', 'Métier'], ['town', 'Ville']];
   const open = tasks.filter((t) => !t.done_at);
   const done = tasks.filter((t) => t.done_at);
-  const taskItem = (t) => `<li><input type="checkbox" data-task="${esc(t.id)}" ${t.done_at ? 'checked' : ''} aria-label="Fait"><span class="${t.done_at ? 'done' : ''}">${esc(t.title)}</span><span class="muted">${esc(fmtDate(t.due_at))}</span></li>`;
+  const late = (t) => !t.done_at && dayKey(t.due_at) < dayKey(new Date());
+  const taskItem = (t) => `<li><input type="checkbox" data-task="${esc(t.id)}" ${t.done_at ? 'checked' : ''} aria-label="Fait"><span class="${t.done_at ? 'done' : ''}">${esc(t.title)}</span><span class="${late(t) ? 'late' : 'muted'}">${late(t) ? 'en retard · ' : ''}${esc(fmtDate(t.due_at))}</span></li>`;
   view.innerHTML = `
   <p><a href="#/">← Tableau</a></p>
   <div id="msg"></div>
