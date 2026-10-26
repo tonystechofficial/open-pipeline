@@ -1,0 +1,15 @@
+{
+  "name": "open-pipeline",
+  "version": "0.1.0",
+  "description": "A small sales pipeline for a one-person business, on the Cloudflare free tier: contacts, deals, next actions, a morning email, and intake from Cal.com, an AI receptionist, a website form and CSV.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Tony's Tech",
+  "repository": "github:tonystechofficial/open-pipeline",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

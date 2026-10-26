@@ -1,0 +1,39 @@
+{
+  "name": "Tony's Tech",
+  "timeZone": "Europe/Paris",
+  "retentionDays": 1095,
+  "stages": [
+    { "id": "nouveau", "label": "Nouveau", "temperature": "froid" },
+    { "id": "contacte", "label": "Contacté", "temperature": "froid" },
+    { "id": "rdv_pris", "label": "RDV pris", "temperature": "tiede" },
+    { "id": "qualifie", "label": "Qualifié", "temperature": "chaud" },
+    { "id": "proposition", "label": "Proposition envoyée", "temperature": "chaud" },
+    { "id": "pilote_signe", "label": "Pilote signé", "won": true },
+    { "id": "en_service", "label": "En service", "won": true, "closed": true },
+    { "id": "perdu", "label": "Perdu / Plus tard", "lost": true, "closed": true }
+  ],
+  "fields": [
+    { "id": "offre", "label": "Offre", "type": "select", "options": [
+      { "id": "receptionniste", "label": "Réceptionniste vocal" },
+      { "id": "assistant_site", "label": "Assistant sur le site" },
+      { "id": "bot", "label": "Bot messagerie" },
+      { "id": "audit", "label": "Audit sécurité" }
+    ] },
+    { "id": "montant_installation", "label": "Mise en place (€)", "type": "number" },
+    { "id": "montant_mensuel", "label": "Mensuel (€)", "type": "number" },
+    { "id": "metier", "label": "Métier", "type": "text" },
+    { "id": "appels_manques", "label": "Appels manqués par semaine", "type": "number" },
+    { "id": "echeance", "label": "Échéance", "type": "text" },
+    { "id": "cout_inaction", "label": "Coût de l'inaction (€ par mois)", "type": "number" },
+    { "id": "decideur", "label": "Qui décide", "type": "text" },
+    { "id": "donnees", "label": "Données disponibles", "type": "text" },
+    { "id": "deja_essaye", "label": "Déjà essayé", "type": "text" }
+  ],
+  "sources": {
+    "calcom": { "label": "Cal.com", "stage": "rdv_pris" },
+    "receptionniste": { "label": "Réceptionniste", "stage": "nouveau", "bookedStage": "rdv_pris" },
+    "formulaire": { "label": "Site web", "stage": "nouveau" },
+    "import": { "label": "Import CSV", "stage": "nouveau" },
+    "manuel": { "label": "Saisie", "stage": "nouveau" }
+  }
+}
