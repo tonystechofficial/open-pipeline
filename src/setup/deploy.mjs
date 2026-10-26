@@ -21,13 +21,21 @@ export function deployedUrl(ndjson) {
   return urls.find((u) => u.endsWith('.workers.dev')) ?? urls[0] ?? null;
 }
 
-/** The value of a [vars] line replaced in place, so its comment and the line endings stay. */
+/**
+ * A [vars] value written in place, its comment and the line endings kept. A line commented out in a
+ * template (`# NAME = ""`) is turned on; a missing one is added right under [vars].
+ */
 export function setVar(toml, name, value) {
-  const line = new RegExp(`^(${name}\\s*=\\s*")([^"]*)(")`, 'm');
-  const match = toml.match(line);
-  if (!match) return { error: `wrangler.toml needs a line ${name} = "" under [vars].` };
-  if (match[2] === value) return { toml, changed: false };
-  return { toml: toml.replace(line, (_, start, _old, end) => `${start}${value}${end}`), changed: true };
+  const active = new RegExp(`^(${name}\\s*=\\s*")([^"]*)(")`, 'm');
+  const commented = new RegExp(`^#\\s*(${name}\\s*=\\s*")([^"]*)(")`, 'm');
+  const write = (line) => toml.replace(line, (_, start, _old, end) => `${start}${value}${end}`);
+  const current = toml.match(active);
+  if (current) return current[2] === value ? { toml, changed: false } : { toml: write(active), changed: true };
+  if (commented.test(toml)) return { toml: write(commented), changed: true };
+  const header = toml.match(/^\[vars\][^\S\r\n]*(\r?\n)/m);
+  if (!header) return { error: `No [vars] section to write ${name} into.` };
+  const at = header.index + header[0].length;
+  return { toml: `${toml.slice(0, at)}${name} = "${value}"${header[1]}${toml.slice(at)}`, changed: true };
 }
 
 export function databaseIdMissing(toml) {

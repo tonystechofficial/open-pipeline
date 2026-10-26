@@ -32,8 +32,24 @@ test('APP_URL is written in place, its comment and line endings kept; the same v
   assert.deepEqual(setVar(first.toml, 'APP_URL', 'https://open-pipeline.tony.workers.dev'), { toml: first.toml, changed: false });
 });
 
-test('a missing variable is an error, not a silent no-op', () => {
-  assert.match(setVar('[vars]\n', 'APP_URL', 'https://x.example').error, /APP_URL = "" under \[vars\]/);
+test('a variable commented out in a template is turned on; a missing one is added under [vars]', () => {
+  const commented = '[vars]\n# RETENTION_DAYS = "365"\n# CRM_WEBHOOK_URL = ""                # where the end of each call goes\n\n[triggers]\ncrons = ["0 6 * * *"]\n';
+  assert.equal(setVar(commented, 'CRM_WEBHOOK_URL', 'https://i.example/intake/receptionist').toml,
+    '[vars]\n# RETENTION_DAYS = "365"\nCRM_WEBHOOK_URL = "https://i.example/intake/receptionist"                # where the end of each call goes\n\n[triggers]\ncrons = ["0 6 * * *"]\n');
+  const missing = '[vars]\r\nCLIENT_COMPANY = "Tony\'s Tech"\r\n\r\n[triggers]\r\n';
+  assert.deepEqual(setVar(missing, 'CRM_WEBHOOK_URL', 'https://i.example'), {
+    toml: '[vars]\r\nCRM_WEBHOOK_URL = "https://i.example"\r\nCLIENT_COMPANY = "Tony\'s Tech"\r\n\r\n[triggers]\r\n',
+    changed: true,
+  });
+});
+
+test('with both a commented and an active line, the active one is written and the comment left alone', () => {
+  const both = '[vars]\n# CRM_WEBHOOK_URL = ""\nCRM_WEBHOOK_URL = "https://old.example"\n';
+  assert.equal(setVar(both, 'CRM_WEBHOOK_URL', 'https://new.example').toml, '[vars]\n# CRM_WEBHOOK_URL = ""\nCRM_WEBHOOK_URL = "https://new.example"\n');
+});
+
+test('a file without [vars] is an error, not a silent no-op', () => {
+  assert.match(setVar('name = "x"\n', 'APP_URL', 'https://x.example').error, /\[vars\]/);
 });
 
 test('a database id still a placeholder stops the deploy before wrangler runs', () => {
