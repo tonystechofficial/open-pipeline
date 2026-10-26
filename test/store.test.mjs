@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { d1Binding } from './helpers/d1.mjs';
+import { d1Binding } from '../test-support/d1.mjs';
 import { d1Store } from '../src/db/store.mjs';
 import { fromCalBooking, fromReceptionistCall } from '../src/core/intake.mjs';
 
