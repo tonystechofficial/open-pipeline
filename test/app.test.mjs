@@ -84,6 +84,19 @@ test('notes, tasks and contacts: added, completed, corrected', async () => {
   assert.equal((await call('PATCH', `/api/contacts/${contactId}`, { email: 'Jean@Martin.fr' })).body.contact.email, 'jean@martin.fr');
 });
 
+test('the morning email on demand, to check it arrives: sent with what needs doing, or why it was not', async () => {
+  const { call, deps } = app();
+  assert.equal((await call('POST', '/api/digest')).body.digest, 'quiet');
+  await call('POST', '/api/deals', { name: 'Sophie', phone: '06 98 76 54 32' }); // no next action
+  assert.match((await call('POST', '/api/digest')).body.digest, /^not sent/);
+  const sent = [];
+  Object.assign(deps, { sendEmail: async (m) => sent.push(m), to: 'tony@example.com', appUrl: 'https://p.example' });
+  assert.equal((await call('POST', '/api/digest')).body.digest, 'sent');
+  assert.equal(sent[0].to, 'tony@example.com');
+  assert.match(sent[0].subject, /1 sans prochaine action/);
+  assert.equal((await app({ access: false }).call('POST', '/api/digest')).status, 403);
+});
+
 test('a CSV import: rows created, the same person merged, an empty row reported with its line', async () => {
   const { call } = app();
   const csv = 'Nom;Téléphone;Ville\nJean Martin;06 12 34 56 78;Mérignac\n;;Pessac\nJ. Martin;0612345678;Mérignac\nSophie;0698765432;Pessac\n';

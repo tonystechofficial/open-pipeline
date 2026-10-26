@@ -5,6 +5,7 @@ import { parseCsv } from '../core/csv.mjs';
 import { fromCsvRow, contactOf } from '../core/intake.mjs';
 import { clean } from '../core/text.mjs';
 import { json, readJson, isoDate } from './http.mjs';
+import { sendDigest } from './daily.mjs';
 
 const ACTIVITY_KINDS = new Set(['note', 'call', 'meeting', 'email']);
 const MAX_IMPORT_ROWS = 2000;
@@ -60,6 +61,10 @@ export async function handleApp(request, deps) {
 
     if (method === 'POST' && path === '/api/deals') return createDeal(await readJson(request), deps, opts);
     if (method === 'POST' && path === '/api/import') return importCsv(await readJson(request), deps, opts);
+    if (method === 'POST' && path === '/api/digest') {
+      const { sendEmail, to, appUrl, log } = deps;
+      return json({ digest: await sendDigest({ store, config, now, sendEmail, to, appUrl, log }) });
+    }
 
     let m = path.match(/^\/api\/deals\/([\w-]+)$/);
     if (m && method === 'GET') {

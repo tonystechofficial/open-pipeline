@@ -241,8 +241,26 @@ async function tasks() {
     ${section('À venir', open.filter((t) => dayKey(t.dueAt) > today))}
     <h2>Sans prochaine action <span class="muted">${idle.length}</span></h2>
     <ul>${idle.map((d) => `<li><a href="#/deal/${esc(d.id)}">${esc(d.title)}</a><span class="muted">${esc(d.stageLabel)}</span></li>`).join('') || '<li class="muted">Toutes les affaires ont une prochaine action.</li>'}</ul>
+    <h2>Récapitulatif du matin</h2>
+    <p class="muted">Chaque matin vers 7 h, cette liste part par email. Pour vérifier qu'il arrive :</p>
+    <div id="msg"></div>
+    <button class="btn btn--small" id="digest">M'envoyer le récapitulatif maintenant</button>
   </div>`;
   wireTaskChecks();
+  $('#digest').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try {
+      const { digest } = await api('POST', '/api/digest');
+      const said = {
+        sent: ['Envoyé : regardez votre boîte (et les indésirables la première fois).', true],
+        quiet: ["Rien en retard, rien aujourd'hui, aucune affaire sans prochaine action : pas d'email.", true],
+      }[digest] ?? [digest.startsWith('not sent')
+        ? "Pas d'email : la clé RESEND_API_KEY ou REMINDER_EMAIL manque (voir README.local.md)."
+        : `L'envoi a échoué : ${digest.replace(/^failed: /, '')}`, false];
+      $('#msg').innerHTML = flash(...said);
+    } catch (err) { $('#msg').innerHTML = flash(err.message); }
+    e.target.disabled = false;
+  });
 }
 
 // ---- Nouveau ------------------------------------------------------------------------------------

@@ -12,24 +12,24 @@ import { runDaily, resendSender } from '../src/server/daily.mjs';
 
 const { errors } = validatePipeline(config);
 
+/** Who gets the morning email, through what, with links to where. */
+const mail = (env) => ({
+  sendEmail: env.RESEND_API_KEY ? resendSender({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM }) : null,
+  to: env.REMINDER_EMAIL,
+  appUrl: env.APP_URL,
+});
+
 export default {
   fetch(request, env, ctx) {
     if (errors.length) {
       console.error('[open-pipeline] config/pipeline.json:', errors.join(' ; '));
       return new Response('Configuration invalide : voir npm run tail.', { status: 500 });
     }
-    return handleApp(request, { store: d1Store(env.DB, config), config, assets: { html, css, js }, access: ctx.access });
+    return handleApp(request, { store: d1Store(env.DB, config), config, assets: { html, css, js }, access: ctx.access, ...mail(env) });
   },
 
   async scheduled(controller, env) {
-    const outcome = await runDaily({
-      store: d1Store(env.DB, config),
-      config,
-      now: new Date(controller.scheduledTime),
-      sendEmail: env.RESEND_API_KEY ? resendSender({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM }) : null,
-      to: env.REMINDER_EMAIL,
-      appUrl: env.APP_URL,
-    });
+    const outcome = await runDaily({ store: d1Store(env.DB, config), config, now: new Date(controller.scheduledTime), ...mail(env) });
     console.log('[open-pipeline] morning run', JSON.stringify(outcome));
   },
 };
